@@ -29,6 +29,8 @@ public class Eruption extends Skill implements SkillShot{
 
 	private final double COOLDOWN = 0.1;
 	private final double MANACOST = 20;
+	private final int COST = 45;
+	private final int COST_SCALE = 5;
 
 	public Eruption(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
@@ -89,6 +91,12 @@ public class Eruption extends Skill implements SkillShot{
 		if(cooldown.containsKey(shooter))
 			return (cooldown.get(shooter)+this.getCooldown(level)*1000 > System.currentTimeMillis());
 		return false;
+	}
+	
+	@Override
+	public int getCost(int level)
+	{
+		return COST + level*COST_SCALE;
 	}
 
 }

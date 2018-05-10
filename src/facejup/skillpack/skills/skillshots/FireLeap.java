@@ -69,7 +69,9 @@ public class FireLeap extends Skill implements SkillShot{
 				for(int z = -1*radius; z <= radius; z++)
 				{
 					Location tempLoc = loc.clone().add(new Vector(x,0,z));
-					if(tempLoc.distance(loc) < (radius+0.5) && tempLoc.distance(loc) > (radius-0.5))
+					Vector dir = loc.toVector().subtract(tempLoc.toVector()).normalize();
+					double dot = dir.dot(loc.getDirection());
+					if(dot >= 0.5 && tempLoc.distance(loc) < (radius+0.5) && tempLoc.distance(loc) > (radius-0.5))
 					{
 						if(tempLoc.getBlock().getType() == Material.AIR)
 						{

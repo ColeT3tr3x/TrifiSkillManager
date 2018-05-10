@@ -13,13 +13,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.SkillPlugin;
 import com.sucy.skill.api.skills.Skill;
 
+import facejup.skillpack.skills.passives.BlastResistance;
+import facejup.skillpack.skills.passives.FireResistance;
+import facejup.skillpack.skills.passives.Gills;
+import facejup.skillpack.skills.passives.PoisonResistance;
+import facejup.skillpack.skills.passives.ProjectileResistance;
 import facejup.skillpack.skills.passives.Static;
+import facejup.skillpack.skills.passives.Thorns;
+import facejup.skillpack.skills.passives.Weightless;
+import facejup.skillpack.skills.passives.WitherResistance;
 import facejup.skillpack.skills.skillshots.Displacement;
 import facejup.skillpack.skills.skillshots.Drill;
 import facejup.skillpack.skills.skillshots.Eruption;
@@ -35,6 +44,7 @@ import facejup.skillpack.users.User;
 import facejup.skillpack.users.UserManager;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
+import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin implements SkillPlugin,Listener {
 
@@ -44,6 +54,8 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 	private CommandManager cm;
 	private EventManager em;
 	private NPCManager npcm;
+	
+    private Economy econ;
 
 	private UpdateTimer timer;
 
@@ -81,8 +93,30 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 			}
 		}, 10L);
 		npcm.loadShops();
+        if (!setupEconomy()) {
+            this.getLogger().severe("Disabled due to no Vault dependency found!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+	}
+	
+	public Economy getEconomy()
+	{
+		return this.econ;
 	}
 
+    private boolean setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
 
 	public Skill getBindedSkill(Player player, ItemStack item)
 	{
@@ -164,6 +198,14 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 		api.addSkill(new Volley("Volley", "SkillShot", Material.ARROW, 10));
 		api.addSkill(new Eruption("Eruption", "SkillShot", Material.TNT, 4));
 		api.addSkill(new Static("Static", "PassiveSkill", Material.LAPIS_BLOCK, 3));
+		api.addSkill(new BlastResistance("BlastResistance", "PassiveSkill", Material.TNT, 4));
+		api.addSkill(new FireResistance("FireResistance", "PassiveSkill", Material.FLINT_AND_STEEL, 4));
+		api.addSkill(new PoisonResistance("PoisonResistance", "PassiveSkill", Material.POTION, 4));
+		api.addSkill(new WitherResistance("WitherResistance", "PassiveSkill", Material.DRAGONS_BREATH, 4));
+		api.addSkill(new ProjectileResistance("ProjectileResistance", "PassiveSkill", Material.ARROW, 4));
+		api.addSkill(new Thorns("Thorns", "PassiveSkill", Material.TRIPWIRE_HOOK, 4));
+		api.addSkill(new Weightless("Weightless", "PassiveSkill", Material.FEATHER, 4));
+		api.addSkill(new Gills("Gills", "PassiveSkill", Material.WATER_BUCKET, 4));
 		api.addSkill(new Magnetize("Magnetize", "SkillShot", Material.GOLD_INGOT, 10));
 		api.addSkill(new Gravitize("Gravitize", "SkillShot", Material.BRICK, 5));
 		api.addSkill(new FireLeap("FireLeap", "SkillShot", Material.FEATHER, 5));

@@ -1,6 +1,7 @@
 package facejup.skillpack.main;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,6 +49,30 @@ public class Shop {
 			npcm.getFileControl().save();
 		}
 	}
+	
+	public void addItem(ItemStack item)
+	{
+		if(!section.contains("Items"))
+		{
+			section.set("Items", Arrays.asList(item));
+		}
+		else
+		{
+			if(item == null)
+				return;
+			List<ItemStack> items = new ArrayList<>();
+			for(Object o : section.getList("Items"))
+			{
+				if(o instanceof ItemStack)
+				{
+					items.add((ItemStack) o);
+				}
+			}
+			items.add(item);
+			section.set("Items", items);
+		}
+		npcm.getFileControl().save();
+	}
 
 	private List<Pair<Skill,Integer>> getSkills()
 	{
@@ -69,11 +94,23 @@ public class Shop {
 		}
 		return skills;
 	}
+	private List<ItemStack> getItems()
+	{
+		if(!section.contains("Items") || section.getList("Items").isEmpty())
+			return new ArrayList<>();
+		List<ItemStack> items = new ArrayList<>();
+		for(ItemStack item : (List<ItemStack>) section.getList("Items"))
+		{
+			items.add(item);
+		}
+		return items;
+	}
 
 	public org.bukkit.inventory.Inventory getShopInventory()
 	{
 		List<Pair<Skill, Integer>> skills = getSkills();
-		int invSize = (skills.isEmpty()?9:9*( (int) ((skills.size()-1)/9.0+1)));
+		int invSize = skills.size() + getItems().size()-1;
+		invSize = skills.isEmpty() && getItems().isEmpty()?9:9*( (int) ((getItems().size() + skills.size()-1)/9.0+1));
 		org.bukkit.inventory.Inventory inv = Bukkit.createInventory(null, invSize, npc.getName());
 		for(Pair<Skill, Integer> skill : skills)
 		{
@@ -84,10 +121,12 @@ public class Shop {
 				lore.add(Chat.translate("&6&oCost: " + skill.getLeft().getCost(skill.getRight()) + " Skill Points"));
 			}
 			ItemMeta meta = item.getItemMeta();
+			meta.setDisplayName(Chat.translate("&bSkill: " + (meta.hasDisplayName()?meta.getDisplayName():Chat.formatItemName(item))));
 			meta.setLore(lore);
 			item.setItemMeta(meta);
 			inv.addItem(item);
 		}
+		getItems().stream().forEach(item -> inv.addItem(item));
 		return inv;
 	}
 

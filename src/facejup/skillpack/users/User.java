@@ -64,13 +64,17 @@ public class User {
 			}
 		}
 	}
-	
+
 	public void purchaseSkill(Skill skill)
 	{
 		if(skill.getCost(1) == 0)
 			return;
-		if(hasSkill(skill))
+		if(hasSkill(skill, 1))
+		{
+			if(player.isOnline())
+				((Player) player).sendMessage(Chat.translate(Lang.tag + "You already have that skill."));
 			return;
+		}
 		if(getSkillpoints() >= skill.getCost(1))
 		{
 			decSkillpoints(skill.getCost(1));
@@ -87,7 +91,7 @@ public class User {
 	{
 		if(skill.getCost(level) == 0)
 			return;
-		if(hasSkill(skill))
+		if(hasSkill(skill, level))
 		{
 			if(player.isOnline())
 				((Player) player).sendMessage(Chat.translate(Lang.tag + "You already have that skill."));
@@ -96,7 +100,7 @@ public class User {
 		if(getSkillpoints() >= skill.getCost(level))
 		{
 			decSkillpoints(skill.getCost(level));
-			unlockSkill(skill);
+			unlockSkill(skill, level);
 		}
 		else
 		{
@@ -104,19 +108,27 @@ public class User {
 				((Player) player).sendMessage(Chat.translate(Lang.tag + "Not enough Skillpoints &5(" + getSkillpoints() + "/" + skill.getCost(level) + ")"));
 		}
 	}
-	
-	public boolean hasSkill(Skill skill)
+
+	public boolean hasSkill(Skill skill, int level)
 	{
-		if(section.contains("Skills." + skill.getName()))
+		if(section.contains("Skills." + skill.getName()) && section.getInt("Skills." + skill.getName() + ".Level") >= level)
 			return true;
 		return false;
 	}
-	
+
 	public void unlockSkill(Skill skill)
 	{
 		if(player.isOnline())
 			((Player) player).sendMessage(Chat.translate(Lang.tag + "You have unlocked " + skill.getName()));
 		section.set("Skills." + skill.getName() + ".Level", 1);
+		um.getFileControl().save();
+	}
+
+	public void unlockSkill(Skill skill, int level)
+	{
+		if(player.isOnline())
+			((Player) player).sendMessage(Chat.translate(Lang.tag + "You have unlocked " + skill.getName()));
+		section.set("Skills." + skill.getName() + ".Level", level);
 		um.getFileControl().save();
 	}
 
@@ -151,7 +163,7 @@ public class User {
 			um.getFileControl().save();
 		}
 	}
-	
+
 	public void attemptIncSkillLevel(Skill skill)
 	{
 		if(getSkillpoints() > 0 && getSkillLevel(skill) < skill.getMaxLevel())

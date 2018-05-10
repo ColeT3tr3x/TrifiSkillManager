@@ -2,6 +2,7 @@ package facejup.skillpack.commands;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -12,11 +13,19 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.Skill;
 
 import facejup.skillpack.main.CommandManager;
+import facejup.skillpack.skills.ScrollType;
+import facejup.skillpack.skills.skillshots.Displacement;
 import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
+import facejup.skillpack.util.FancyTextUtil;
+import facejup.skillpack.util.Lang;
+import facejup.skillpack.util.Numbers;
+import facejup.skillpack.util.SkillUtil;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class CMDSkills implements CommandExecutor {
 
@@ -32,8 +41,86 @@ public class CMDSkills implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(sender instanceof Player)
 		{
-			((Player) sender).openInventory(getSkillsInventory((Player) sender));
-			cm.getMain().getEventManager().getSkillMenuListener().menuPlayers.add((Player) sender);
+			Player player = (Player) sender;
+			User user = cm.getMain().getUserManager().getUser(player);
+			if(args.length == 0)
+			{
+				List<Skill> skills = user.getSkills();
+				if(skills.isEmpty())
+				{
+					player.sendMessage(Chat.translate(Lang.tag + "&bYou don't have any skills."));
+					return true;
+				}
+				TextComponent premsg = new TextComponent(Chat.translate("&7Your Skills: "));
+				for(Skill skill : skills)
+				{
+					TextComponent text = FancyTextUtil.getSkillItemTooltipMessage(skill, user.getSkillLevel(skill));
+					if(!skill.equals(skills.get(skills.size()-1)))
+					text.addExtra(", ");
+					premsg.addExtra(text);
+				}
+				player.spigot().sendMessage(premsg);
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("menu"))
+			{
+				player.openInventory(getSkillsInventory((Player) sender));
+				cm.getMain().getEventManager().getSkillMenuListener().menuPlayers.add(player);
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("info"))
+			{
+				if(args.length == 1)
+				{
+					List<Skill> skills = new ArrayList<>();
+					skills.addAll(SkillAPI.getSkills().values());
+					TextComponent premsg = new TextComponent(Chat.translate("&7All Skills: "));
+					for(Skill skill : skills)
+					{
+						TextComponent text = FancyTextUtil.getSkillItemTooltipMessage(skill, user.getSkillLevel(skill));
+						if(!skill.equals(skills.get(skills.size()-1)))
+						text.addExtra(", ");
+						premsg.addExtra(text);
+					}
+					player.spigot().sendMessage(premsg);
+					return true;
+				}
+				if(SkillAPI.getSkill(args[1]) == null)
+				{
+					player.sendMessage(Lang.nullSkill);
+					return true;
+				}
+				Skill skill = SkillAPI.getSkill(args[1]);
+				player.sendMessage(Chat.translate("&b&l" + Chat.formatName(skill.getName())));
+				for(String loreline : SkillUtil.getSkillItemStack(skill, user.hasSkill(skill, 1)?user.getSkillLevel(skill):1).getItemMeta().getLore())
+				{
+					player.sendMessage(loreline);
+				}
+			}
+			if(args[0].equalsIgnoreCase("scroll") && player.isOp())
+			{
+				if(args.length == 1 || args.length == 2)
+				{
+					player.sendMessage(Lang.invalidArgs);
+					return true;
+				}
+				if(ScrollType.getScrollType(args[1]) == null)
+				{
+					player.sendMessage(Chat.translate(Lang.tag + "Must specify a scroll type: Learn/Cast"));
+					return true;
+				}
+				if(SkillAPI.getSkill(args[2]) == null)
+				{
+					player.sendMessage(Lang.nullSkill);
+					return true;
+				}
+				ScrollType type = ScrollType.getScrollType(args[1]);
+				Skill skill = SkillAPI.getSkill(args[2]);
+				int level = 1;
+				if(args.length == 4 && Numbers.isInt(args[3]))
+					level = Integer.parseInt(args[3]);
+				player.getInventory().addItem(SkillUtil.getSkillScroll(skill, level, type));
+			}
 		}
 		return true;
 	}
