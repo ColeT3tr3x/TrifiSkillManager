@@ -1,0 +1,19 @@
+name: TrifiSkillManager
+main: facejup.skillpack.main.Main
+description: fuck bitches get money
+version: 69
+depend: [SkillAPI, Citizens]
+author: notyoubitch
+commands:
+  bind:
+    description: ahahhhh
+    usage: /<command>
+  cast:
+    description: ahahhhh
+    usage: /<command>
+  skills:
+    description: ahahhhh
+    usage: /<command>
+  shop:
+    description: ahahhhh
+    usage: /<command>
