@@ -77,7 +77,7 @@ public class CMDSkills implements CommandExecutor {
 					TextComponent premsg = new TextComponent(Chat.translate("&7All Skills: "));
 					for(Skill skill : skills)
 					{
-						TextComponent text = FancyTextUtil.getSkillItemTooltipMessage(skill, user.getSkillLevel(skill));
+						TextComponent text = FancyTextUtil.getSkillItemTooltipMessage(skill, 1);
 						if(!skill.equals(skills.get(skills.size()-1)))
 						text.addExtra(", ");
 						premsg.addExtra(text);
