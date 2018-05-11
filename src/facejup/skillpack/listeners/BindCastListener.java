@@ -1,5 +1,6 @@
 package facejup.skillpack.listeners;
 
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,7 +28,7 @@ public class BindCastListener implements Listener{
 	{
 		Player player = event.getPlayer();
 		ItemStack item = event.getItem();
-		if(event.getAction().name().contains("CLICK"))
+		if(event.getAction().name().contains("RIGHT_CLICK") && player.getGameMode() != GameMode.SPECTATOR)
 		{
 			if(event.getItem() == null)
 				return;

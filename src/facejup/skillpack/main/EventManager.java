@@ -2,8 +2,8 @@ package facejup.skillpack.main;
 
 import facejup.skillpack.listeners.BindCastListener;
 import facejup.skillpack.listeners.ExperienceListener;
-import facejup.skillpack.listeners.PassiveSkillListener;
-import facejup.skillpack.listeners.PassiveSkillListener;
+import facejup.skillpack.listeners.SkillListener;
+import facejup.skillpack.listeners.SkillListener;
 import facejup.skillpack.listeners.ScrollUseListener;
 import facejup.skillpack.listeners.ShopListener;
 import facejup.skillpack.listeners.SkillMenuListener;
@@ -16,12 +16,12 @@ public class EventManager {
 	public SkillMenuListener skillMenuListener;
 	public ShopListener shopListener;
 	public ScrollUseListener scrollUseListener;
-	public PassiveSkillListener passiveSkillListener;
+	public SkillListener passiveSkillListener;
 	
 	public EventManager(Main main)
 	{
 		this.main = main;
-		this.passiveSkillListener = new PassiveSkillListener(this);
+		this.passiveSkillListener = new SkillListener(this);
 		scrollUseListener = new ScrollUseListener(this);
 		shopListener = new ShopListener(this);
 		skillMenuListener = new SkillMenuListener(this);
