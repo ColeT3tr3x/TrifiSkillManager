@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -26,6 +27,7 @@ public class Projection extends Skill implements SkillShot {
 
 	private HashMap<LivingEntity, Long> cooldown = new HashMap<>();
 	public HashMap<Player, NPC> clones = new HashMap<>();
+	public HashMap<Player, Integer> castlevel = new HashMap<>();
 
 	private final double COOLDOWN = 5;
 	private final double MANACOST = 25;
@@ -35,6 +37,7 @@ public class Projection extends Skill implements SkillShot {
 	public Projection(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Travel outside of your body");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override
@@ -55,9 +58,12 @@ public class Projection extends Skill implements SkillShot {
 		}
 		cooldown.put(player, System.currentTimeMillis());
 		Player caster = (Player) player;
+		castlevel.put(caster, level);
 		clones.put(caster, CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, caster.getName()));
 		clones.get(caster).spawn(caster.getLocation());
 		NPC npc = clones.get(caster);
+		npc.setProtected(false);
+		npc.getEntity().setInvulnerable(false);
 		if(caster.getInventory().getHelmet() != null)
 			((HumanEntity) npc.getEntity()).getEquipment().setHelmet(caster.getInventory().getHelmet());
 		if(caster.getInventory().getChestplate() != null)

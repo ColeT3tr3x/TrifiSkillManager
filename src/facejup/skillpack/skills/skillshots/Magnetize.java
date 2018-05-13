@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -31,6 +32,7 @@ public class Magnetize extends Skill implements SkillShot{
 	public Magnetize(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Pull items in a %LEVEL*2% +4 block radius");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

@@ -7,15 +7,20 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.Skill;
 
+import facejup.skillpack.skills.PaymentType;
+import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
+import facejup.skillpack.util.Numbers;
 import facejup.skillpack.util.SkillUtil;
 import net.citizensnpcs.api.npc.NPC;
+import net.md_5.bungee.api.ChatColor;
 
 public class Shop {
 
@@ -106,8 +111,9 @@ public class Shop {
 		return items;
 	}
 
-	public org.bukkit.inventory.Inventory getShopInventory()
+	public org.bukkit.inventory.Inventory getShopInventory(Player player)
 	{
+		User user = npcm.getMain().getUserManager().getUser(player);
 		List<Pair<Skill, Integer>> skills = getSkills();
 		int invSize = skills.size() + getItems().size()-1;
 		invSize = skills.isEmpty() && getItems().isEmpty()?9:9*( (int) ((getItems().size() + skills.size()-1)/9.0+1));
@@ -120,13 +126,31 @@ public class Shop {
 			{
 				lore.add(Chat.translate("&6&oCost: " + skill.getLeft().getCost(skill.getRight()) + " Skill Points"));
 			}
+			lore.add(Chat.translate("&bYou have " + user.getSkillpoints() + " Skillpoints"));
 			ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(Chat.translate("&bSkill: " + (meta.hasDisplayName()?meta.getDisplayName():Chat.formatItemName(item))));
+			meta.setDisplayName(Chat.translate("&r&5Skill: " + (meta.hasDisplayName()?meta.getDisplayName():Chat.formatItemName(item))));
 			meta.setLore(lore);
 			item.setItemMeta(meta);
-			inv.addItem(item);
+			inv.setItem(inv.firstEmpty(), item);
 		}
-		getItems().stream().forEach(item -> inv.addItem(item));
+		for(ItemStack itemtest : getItems())
+		{
+			ItemStack item = itemtest.clone();
+			ItemMeta meta = item.getItemMeta();
+			List<String> lore = (meta.hasLore()?meta.getLore():new ArrayList<>());
+			if(lore.size() == 0)
+				continue;
+			String type = lore.get(lore.size()-1);
+			if(!ChatColor.stripColor(type).startsWith("Cost: "))
+				continue;
+			PaymentType paytype = PaymentType.getPaymentByName(type.substring(type.lastIndexOf(" ")+1,type.length()-1));
+			if(paytype == null)
+				continue;
+			lore.add(Chat.translate("&r&5You have " + (paytype==PaymentType.COIN?npcm.getMain().getEconomy().getBalance(player):user.getSkillpoints()) + " " + Chat.formatName(paytype.name()) + "s"));
+			meta.setLore(lore);
+			item.setItemMeta(meta);
+			inv.setItem(inv.firstEmpty(), item);
+		}
 		return inv;
 	}
 

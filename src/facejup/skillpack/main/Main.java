@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
@@ -39,6 +38,7 @@ import facejup.skillpack.skills.skillshots.Fireball;
 import facejup.skillpack.skills.skillshots.FireballRare;
 import facejup.skillpack.skills.skillshots.Gravitize;
 import facejup.skillpack.skills.skillshots.Ignite;
+import facejup.skillpack.skills.skillshots.LightningBall;
 import facejup.skillpack.skills.skillshots.Magnetize;
 import facejup.skillpack.skills.skillshots.Projection;
 import facejup.skillpack.skills.skillshots.Pyromancy;
@@ -47,6 +47,7 @@ import facejup.skillpack.skills.skillshots.Volley;
 import facejup.skillpack.skills.targettedskills.Gift;
 import facejup.skillpack.users.User;
 import facejup.skillpack.users.UserManager;
+import facejup.skillpack.util.Bind;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
 import net.milkbowl.vault.economy.Economy;
@@ -55,7 +56,7 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 
 	public static Main instance;
 
-	private HashMap<Player, List<Pair<Skill,ItemStack>>> binds = new HashMap<>(); 
+	private HashMap<Player, List<Bind>> binds = new HashMap<>(); 
 
 	private UserManager um;
 	private CommandManager cm;
@@ -130,10 +131,10 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 	{
 		if(!binds.containsKey(player))
 			return null;
-		for(Pair<Skill, ItemStack> bind : binds.get(player))
+		for(Bind bind : binds.get(player))
 		{
-			if(bind.getRight().isSimilar(item))
-				return bind.getKey();
+			if(bind.item.isSimilar(item))
+				return bind.skill;
 		}
 		return null;
 	}
@@ -142,15 +143,27 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 	{
 		if(!binds.containsKey(player))
 			return null;
-		for(Pair<Skill, ItemStack> bind : binds.get(player))
+		for(Bind bind : binds.get(player))
 		{
-			if(bind.getLeft().equals(skill))
-				return bind.getRight();
+			if(bind.skill.equals(skill))
+				return bind.item;
 		}
 		return null;
 	}
 
-	public void bindSkill(Player player, Skill skill)
+	public int getBindedSkillLevel(Player player, Skill skill)
+	{
+		if(!binds.containsKey(player))
+			return 0;
+		for(Bind bind : binds.get(player))
+		{
+			if(bind.skill.equals(skill))
+				return bind.level;
+		}
+		return 0;
+	}
+
+	public void bindSkill(Player player, Skill skill, int level)
 	{
 		if(getBindedSkill(player, player.getInventory().getItemInMainHand()) != null)
 		{
@@ -160,12 +173,12 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 		{
 			unbindSkill(player, getBindedItemStack(player, skill));
 		}
-		List<Pair<Skill, ItemStack>> playerbinds = new ArrayList<>();
+		List<Bind> playerbinds = new ArrayList<>();
 		if(binds.containsKey(player))
 			playerbinds = binds.get(player);
-		playerbinds.add(Pair.of(skill, player.getInventory().getItemInMainHand()));
+		playerbinds.add(new Bind(skill, player.getInventory().getItemInMainHand(), level));
 		binds.put(player, playerbinds);
-		player.sendMessage(Chat.translate(Lang.tag + skill.getName() + " has been bound to " + Chat.formatItemName(player.getInventory().getItemInMainHand())));
+		player.sendMessage(Chat.translate(Lang.tag + skill.getName() + " " + level + " has been bound to " + Chat.formatItemName(player.getInventory().getItemInMainHand())));
 	}
 
 	public void unbindSkill(Player player, ItemStack item)
@@ -177,14 +190,14 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 			player.sendMessage(Lang.tag + Chat.translate("You don't have a skill bound to &5" + Chat.formatItemName(item)));
 			return;
 		}
-		for(Pair<Skill, ItemStack> bind : binds.get(player))
+		for(Bind bind : binds.get(player))
 		{
-			if(bind.getRight().isSimilar(item))
+			if(bind.item.isSimilar(item))
 			{
-				List<Pair<Skill,ItemStack>> playerbinds = binds.get(player);
+				List<Bind> playerbinds = binds.get(player);
 				playerbinds.remove(bind);
 				binds.put(player, playerbinds);
-				player.sendMessage(Chat.translate(Lang.tag + bind.getLeft().getName() + " has been unbound from " + Chat.formatItemName(item)));
+				player.sendMessage(Chat.translate(Lang.tag + bind.skill.getName() + " has been unbound from " + Chat.formatItemName(item)));
 				return;
 			}
 		}
@@ -199,6 +212,7 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 	@Override
 	public void registerSkills(SkillAPI api) {
 		api.addSkill(new Fireball("Fireball", "SkillShot", Material.FIREBALL, 5));
+		api.addSkill(new LightningBall("LightningBall", "SkillShot", Material.FIREBALL, 5));
 		api.addSkill(new FireballRare("FireballRare", "SkillShot", Material.FIREBALL, 20));
 		api.addSkill(new Displacement("Displacement", "SkillShot", Material.ENDER_PEARL, 5));
 		api.addSkill(new Ignite("Ignite", "SkillShot", Material.BLAZE_POWDER, 5));

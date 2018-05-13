@@ -17,6 +17,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -28,6 +29,7 @@ public class Telekinesis extends Skill implements SkillShot{
 
 	public HashMap<LivingEntity, Long> cooldown = new HashMap<>();
 	public HashMap<Player, FallingBlock> blocks = new HashMap<>();
+	public HashMap<Player, Integer> castlevel = new HashMap<>();
 
 	private final double COOLDOWN = 5;
 	private final double MANACOST = 25;
@@ -41,6 +43,7 @@ public class Telekinesis extends Skill implements SkillShot{
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&bSkillShot");
 		getDescription().add("&7Pick up a block and shoot it with leftclick.");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override
@@ -83,6 +86,7 @@ public class Telekinesis extends Skill implements SkillShot{
 		loc = block.getLocation().add(new Vector(0,1,0));
 		blocks.put((Player) player, loc.getWorld().spawnFallingBlock(loc, data));
 		blocks.get((Player) player).setHurtEntities(true);
+		castlevel.put(((Player)player), level);
 		moveFire((Player) player);
 		return true;
 	}

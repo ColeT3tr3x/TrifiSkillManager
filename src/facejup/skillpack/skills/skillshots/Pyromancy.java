@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -38,6 +39,7 @@ public class Pyromancy extends Skill implements SkillShot{
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&bSkillShot");
 		getDescription().add("&7Pick up fire and shoot it with leftclick.");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

@@ -16,6 +16,7 @@ import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.Skill;
 
 import facejup.skillpack.main.CommandManager;
+import facejup.skillpack.skills.PaymentType;
 import facejup.skillpack.skills.ScrollType;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
@@ -55,6 +56,11 @@ public class CMDShop implements CommandExecutor {
 		NPC npc = CitizensAPI.getDefaultNPCSelector().getSelected(player);
 		if(args[0].equalsIgnoreCase("create"))
 		{
+			if(cm.getMain().getNPCManager().shops.containsKey(npc))
+			{
+				player.sendMessage(Chat.translate(Lang.tag + npc.getName() + " already has a shop"));
+				return true;
+			}
 			cm.getMain().getNPCManager().createShop(npc);
 			player.sendMessage(Chat.translate(Lang.tag + "Shop created for " + npc.getName()));
 		}
@@ -104,66 +110,84 @@ public class CMDShop implements CommandExecutor {
 					return true;
 				}
 				ItemStack item = player.getInventory().getItemInMainHand();
-				if(args.length == 2)
+				if(args.length == 2 || PaymentType.getPaymentByName(args[2]) == null)
 				{
-					player.sendMessage(Chat.translate(Lang.tag + "Must specify a price"));
+					player.sendMessage(Chat.translate(Lang.tag + "Must specify a payment type: Coin, SkillPoint"));
 					return true;
 				}
-				if(!Numbers.isInt(args[2]))
+				PaymentType type = PaymentType.getPaymentByName(args[2]);
+				if(args.length == 3)
+				{
+					player.sendMessage(Chat.translate(Lang.tag + "Must specify a cost"));
+					return true;
+				}
+				if(!Numbers.isInt(args[3]))
 				{
 					player.sendMessage(Chat.translate(Lang.tag + "Must input a number for the price"));
 					return true;
 				}
-				int price = Integer.parseInt(args[2]);
+				int price = Integer.parseInt(args[3]);
 				item = item.clone();
 				ItemMeta meta = item.getItemMeta();
 				List<String> lore = (meta.hasLore()?meta.getLore():new ArrayList<>());
 				meta.setDisplayName((meta.hasDisplayName()?ChatColor.AQUA + "" + item.getAmount() + " " + meta.getDisplayName():ChatColor.GOLD + "" + item.getAmount() + " " +  Chat.formatItemName(item)));
-				lore.add(Chat.translate("&6Cost: " + price + " Coins"));
+				lore.add(Chat.translate("&6Cost: " + price + " " + Chat.formatName(type.name()) + "s"));
 				meta.setLore(lore);
 				item.setItemMeta(meta);
-				cm.getMain().getNPCManager().shops.get(npc).addItem(item);
+				cm.getMain().getNPCManager().shops.get(npc).addItem(item);	
+				player.sendMessage(Chat.translate(Lang.tag + meta.getDisplayName() + " &aadded to &b" + npc.getName() + " &ashop for &6" + price + " " + Chat.formatName(type.name()) + "s"));
 
 			}
 			if(args[1].equalsIgnoreCase("scroll"))
 			{
-				if(args.length == 2 || args.length == 3 || args.length == 4)
+				if(!cm.getMain().getNPCManager().shops.containsKey(npc))
 				{
-					player.sendMessage(Lang.invalidArgs);
+					player.sendMessage(Lang.nullShop);
 					return true;
 				}
-				if(ScrollType.getScrollType(args[2]) == null)
+				if(args.length == 2 || ScrollType.getScrollType(args[2]) == null)
 				{
 					player.sendMessage(Chat.translate(Lang.tag + "Must specify a scroll type: Learn/Cast"));
 					return true;
 				}
-				if(SkillAPI.getSkill(args[3]) == null)
+				ScrollType type = ScrollType.getScrollType(args[2]);
+				if(args.length == 3 || SkillAPI.getSkill(args[3]) == null)
 				{
 					player.sendMessage(Lang.nullSkill);
 					return true;
 				}
-				ScrollType type = ScrollType.getScrollType(args[2]);
 				Skill skill = SkillAPI.getSkill(args[3]);
-				int level = 1;
-				int cost = 0;
-				if(Numbers.isInt(args[4]))
-					cost = Integer.parseInt(args[4]);
-				else
+				if(args.length == 4 || !Numbers.isInt(args[4]))
 				{
-					player.sendMessage(Chat.translate(Lang.tag + "Must input a cost. Syntax: /shop add scroll (type) (skill) (cost) (level)"));
+					player.sendMessage(Chat.translate(Lang.tag + "Must input a number for the level"));
 					return true;
 				}
-				if(args.length == 6 && Numbers.isInt(args[5]))
-					level = Integer.parseInt(args[5]);
-				ItemStack item = SkillUtil.getSkillScroll(skill, level, type);
+				int level = Integer.parseInt(args[4]);
+				if(args.length == 5 || PaymentType.getPaymentByName(args[5]) == null)
+				{
+					player.sendMessage(Chat.translate(Lang.tag + "Must specify a payment type: Coin, SkillPoint"));
+					return true;
+				}
+				PaymentType paytype = PaymentType.getPaymentByName(args[5]);
+				if(args.length == 6 || !Numbers.isInt(args[6]))
+				{
+					player.sendMessage(Chat.translate(Lang.tag + "Must specify a cost"));
+					return true;
+				}
+				int cost = Integer.parseInt(args[6]);
+				int uses = 1;
+				if(args.length == 8 && Numbers.isInt(args[7]))
+					uses = Integer.parseInt(args[7]);
+				ItemStack item = SkillUtil.getSkillScroll(skill, level, type, uses);
 				item = item.clone();
 				ItemMeta meta = item.getItemMeta();
 				List<String> lore = (meta.hasLore()?meta.getLore():new ArrayList<>());
 				meta.setDisplayName((meta.hasDisplayName()?ChatColor.AQUA + "" + item.getAmount() + " " + meta.getDisplayName():ChatColor.GOLD + "" + item.getAmount() + " " +  Chat.formatItemName(item)));
-				lore.add(Chat.translate("&6Cost: " + cost + " Coins"));
+				lore.add(Chat.translate("&6Cost: " + cost + " " + Chat.formatName(paytype.name()) + "s"));
 				meta.setLore(lore);
 				item.setItemMeta(meta);
 				cm.getMain().getNPCManager().shops.get(npc).addItem(item);
+				player.sendMessage(Chat.translate(Lang.tag + meta.getDisplayName() + " &aadded to &b" + npc.getName() + " &ashop for &6" + cost + " " + Chat.formatName(paytype.name()) + "s"));
 			}
 		}
 		return true;

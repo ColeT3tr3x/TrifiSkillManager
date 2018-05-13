@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -35,6 +36,7 @@ public class Eruption extends Skill implements SkillShot{
 	public Eruption(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Shoot %LEVEL*3% +2 explosions in front of you");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

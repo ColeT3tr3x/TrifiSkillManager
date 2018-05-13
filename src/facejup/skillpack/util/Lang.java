@@ -8,5 +8,6 @@ public class Lang {
 	public static final String nullSkill = tag + Chat.translate("You don't have that skill");
 	public static final String nullPlayer = tag + Chat.translate("Player not found");
 	public static final String nullShop = tag + Chat.translate("Shop not found");
+	public static final String nullItem = tag + "Must be holding an item.";
 
 }

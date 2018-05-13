@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -31,6 +32,7 @@ public class Drill extends Skill implements SkillShot{
 	public Drill(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Dig %LEVEL*3% +2 blocks infront of you");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

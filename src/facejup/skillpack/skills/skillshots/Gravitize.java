@@ -13,6 +13,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -30,6 +31,7 @@ public class Gravitize extends Skill implements SkillShot{
 	public Gravitize(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Cause blocks around you to fall");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

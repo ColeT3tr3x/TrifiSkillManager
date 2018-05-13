@@ -117,9 +117,36 @@ public class CMDSkills implements CommandExecutor {
 				ScrollType type = ScrollType.getScrollType(args[1]);
 				Skill skill = SkillAPI.getSkill(args[2]);
 				int level = 1;
-				if(args.length == 4 && Numbers.isInt(args[3]))
+				if(args.length > 3 && Numbers.isInt(args[3]))
 					level = Integer.parseInt(args[3]);
-				player.getInventory().addItem(SkillUtil.getSkillScroll(skill, level, type));
+				int uses = -1;
+				if(args.length == 5 && Numbers.isInt(args[4]))
+					uses = Integer.parseInt(args[4]);
+				player.getInventory().addItem(SkillUtil.getSkillScroll(skill, level, type, uses));
+			}
+			if(args[0].equalsIgnoreCase("item") && player.isOp())
+			{
+				if(args.length == 1)
+				{
+					player.sendMessage(Lang.invalidArgs);
+					return true;
+				}
+				if(SkillAPI.getSkill(args[1]) == null)
+				{
+					player.sendMessage(Lang.nullSkill);
+					return true;
+				}
+				if(player.getInventory().getItemInMainHand() == null)
+				{
+					player.sendMessage(Lang.nullItem);
+					return true;
+				}
+				ItemStack item = player.getInventory().getItemInMainHand();
+				Skill skill = SkillAPI.getSkill(args[1]);
+				int level = 1;
+				if(args.length == 3 && Numbers.isInt(args[2]))
+					level = Integer.parseInt(args[2]);
+				player.getInventory().setItemInMainHand(SkillUtil.addSkillToItem(item, skill, level));
 			}
 		}
 		return true;

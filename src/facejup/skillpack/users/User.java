@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.Skill;
 
+import facejup.skillpack.skills.skillshots.IUnlocker;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
 
@@ -160,6 +161,16 @@ public class User {
 			int level = section.getInt("Skills." + skill.getName() + ".Level");
 			if(level+1 <= skill.getMaxLevel())
 				section.set("Skills." + skill.getName() + ".Level", section.getInt("Skills." + skill.getName() + ".Level")+1);
+			if(level+1 == skill.getMaxLevel())
+			{
+				if(skill instanceof IUnlocker)
+				{
+					if(SkillAPI.getSkill(((IUnlocker)skill).getSkillName()) != null)
+					{
+						unlockSkill(SkillAPI.getSkill(((IUnlocker)skill).getSkillName()));
+					}
+				}
+			}
 			um.getFileControl().save();
 		}
 	}
@@ -292,16 +303,36 @@ public class User {
 		return 0;
 	}
 
-	public void decSkillpoints()
+	public boolean decSkillpoints()
 	{
 		if(section.contains("Skillpoints"))
-			section.set("Skillpoints", section.getInt("Skillpoints")-1);
+		{
+			if(section.getInt("Skillpoints") >= 1)
+			{
+				section.set("Skillpoints", section.getInt("Skillpoints")-1);
+				return true;
+			}
+			else if(player.isOnline())
+				((Player)player).sendMessage(Chat.translate(Lang.tag + "Not enough skillpoints"));
+		}
+		um.getFileControl().save();
+		return false;
 	}
 
-	public void decSkillpoints(int i)
+	public boolean decSkillpoints(int i)
 	{
 		if(section.contains("Skillpoints"))
-			section.set("Skillpoints", section.getInt("Skillpoints")-i);
+		{
+			if(section.getInt("Skillpoints") >= i)
+			{
+				section.set("Skillpoints", section.getInt("Skillpoints")-i);
+				return true;
+			}
+			else if(player.isOnline())
+				((Player)player).sendMessage(Chat.translate(Lang.tag + "Not enough skillpoints"));
+		}
+		um.getFileControl().save();
+		return false;
 	}
 
 	public OfflinePlayer getPlayer()

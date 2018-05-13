@@ -37,6 +37,11 @@ public class NPCManager {
 			}
 		}
 	}
+	
+	public Main getMain()
+	{
+		return this.main;
+	}
 
 	public void createShop(NPC npc)
 	{

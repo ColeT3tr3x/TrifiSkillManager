@@ -3,6 +3,7 @@ package facejup.skillpack.listeners;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,6 +12,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
@@ -18,14 +20,18 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.SkillAPI;
+import com.sucy.skill.api.skills.Skill;
 
 import facejup.skillpack.main.EventManager;
 import facejup.skillpack.main.Main;
+import facejup.skillpack.skills.skillshots.LightningBall;
 import facejup.skillpack.skills.skillshots.Projection;
 import facejup.skillpack.skills.skillshots.Pyromancy;
 import facejup.skillpack.skills.skillshots.Telekinesis;
 import facejup.skillpack.users.User;
+import facejup.skillpack.util.SkillUtil;
 import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.event.NPCDamageByEntityEvent;
 import net.citizensnpcs.api.npc.NPC;
 
 public class SkillListener implements Listener {
@@ -105,9 +111,51 @@ public class SkillListener implements Listener {
 				{
 					if(projskill.clones.get(player).getStoredLocation().distance(player.getLocation()) < 2)
 					{
-						CitizensAPI.getNPCRegistry().deregister(projskill.clones.get(player));
-						projskill.clones.get(player).despawn();
+						NPC npc = projskill.clones.get(player);
+						if(projskill.castlevel.get(player) < 3)
+							player.teleport(npc.getStoredLocation());
+						npc.despawn();
+						CitizensAPI.getNPCRegistry().deregister(npc);
+						projskill.clones.remove(player);
 						player.setGameMode(GameMode.SURVIVAL);
+					}
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void npcDamageByEntity(NPCDamageByEntityEvent event)
+	{
+		Projection projskill = (Projection) SkillAPI.getSkill("Projection");
+		if(projskill.clones.values().contains(event.getNPC()))
+		{
+			for(Player player : projskill.clones.keySet())
+			{
+				if(projskill.clones.get(player).equals(event.getNPC()))
+				{
+					if(projskill.castlevel.get(player) < 2)
+					{
+						NPC npc = projskill.clones.get(player);
+						if(projskill.castlevel.get(player) < 3)
+							player.teleport(npc.getStoredLocation());
+						npc.despawn();
+						CitizensAPI.getNPCRegistry().deregister(npc);
+						projskill.clones.remove(player);
+						player.setGameMode(GameMode.SURVIVAL);
+						player.setHealth(((LivingEntity)npc.getEntity()).getHealth());
+					}
+					else
+					{
+						NPC npc = projskill.clones.get(player);
+						if(((LivingEntity)npc.getEntity()).getHealth()-event.getDamage() < 0)
+						{
+							player.setGameMode(GameMode.SURVIVAL);
+							npc.despawn();
+							CitizensAPI.getNPCRegistry().deregister(npc);
+							projskill.clones.remove(player);
+							player.damage(player.getMaxHealth());
+						}
 					}
 				}
 			}
@@ -122,9 +170,12 @@ public class SkillListener implements Listener {
 		{
 			Player player = (Player) ent;
 			User user = em.getMain().getUserManager().getUser(player);
-			if(event.getDamager() instanceof Player && user.hasSkill(SkillAPI.getSkill("Thorns"), 1))
+			if(SkillUtil.itemHasSkill(player.getInventory().getItemInMainHand(), SkillAPI.getSkill("Thorns"), 1) || user.hasSkill(SkillAPI.getSkill("Thorns"), 1))
 			{
-				int level = user.getSkillLevel(SkillAPI.getSkill("Thorns"));
+				Skill skill = SkillAPI.getSkill("Thorns");
+				int itemlevel = SkillUtil.getItemSkillLevel(player.getInventory().getItemInMainHand(), skill);
+				int playerlevel = user.getSkillLevel(skill);
+				int level = itemlevel>playerlevel?itemlevel:playerlevel;
 				((Player) event.getDamager()).damage(event.getDamage()*0.2*level);
 			}
 		}
@@ -196,8 +247,8 @@ public class SkillListener implements Listener {
 				if(event.getAction()== Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)
 				{
 					FallingBlock block = teleskill.blocks.get(player);
+					block.setVelocity(player.getLocation().getDirection().multiply(0.5*teleskill.castlevel.get(player)));
 					teleskill.blocks.remove(player);
-					block.setVelocity(player.getLocation().getDirection().multiply(0.5*user.getSkillLevel(teleskill)));
 					return;
 				}
 				if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
@@ -235,32 +286,40 @@ public class SkillListener implements Listener {
 				}
 			}
 		}
-		if(user.hasSkill(SkillAPI.getSkill("Projection"), 1))
+		Projection projskill = (Projection) SkillAPI.getSkill("Projection");
+		if(projskill.clones.containsKey(player))
 		{
-			Projection projskill = (Projection) SkillAPI.getSkill("Projection");
-			if(projskill.clones.containsKey(player))
+			if(projskill.clones.get(player).getStoredLocation().distance(player.getLocation()) > 10)
 			{
-				if(projskill.clones.get(player).getStoredLocation().distance(player.getLocation()) > 10)
-				{
-					NPC npc = projskill.clones.get(player);
-					if(user.getSkillLevel(projskill) < 3)
-						player.teleport(npc.getStoredLocation());
-					npc.despawn();
-					CitizensAPI.getNPCRegistry().deregister(npc);
-					projskill.clones.remove(player);
-					player.setGameMode(GameMode.SURVIVAL);
-					return;
-				}
-				if(projskill.clones.get(player).getStoredLocation().distance(player.getLocation()) < 2)
-				{
-					NPC npc = projskill.clones.get(player);
+				NPC npc = projskill.clones.get(player);
+				if(projskill.castlevel.get(player) < 3)
 					player.teleport(npc.getStoredLocation());
-					npc.despawn();
-					CitizensAPI.getNPCRegistry().deregister(npc);
-					projskill.clones.remove(player);
-					player.setGameMode(GameMode.SURVIVAL);
-				}
+				npc.despawn();
+				CitizensAPI.getNPCRegistry().deregister(npc);
+				projskill.clones.remove(player);
+				player.setGameMode(GameMode.SURVIVAL);
+				return;
 			}
+			if(projskill.clones.get(player).getStoredLocation().distance(player.getLocation()) < 2)
+			{
+				NPC npc = projskill.clones.get(player);
+				player.teleport(npc.getStoredLocation());
+				npc.despawn();
+				CitizensAPI.getNPCRegistry().deregister(npc);
+				projskill.clones.remove(player);
+				player.setGameMode(GameMode.SURVIVAL);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void projectileHit(ProjectileHitEvent event)
+	{
+		LightningBall lightningballskill = (LightningBall) SkillAPI.getSkill("LightningBall");
+		if(lightningballskill.balls.contains(event.getEntity()))
+		{
+			event.getEntity().getWorld().strikeLightning(event.getEntity().getLocation());
+			lightningballskill.balls.remove(event.getEntity());
 		}
 	}
 

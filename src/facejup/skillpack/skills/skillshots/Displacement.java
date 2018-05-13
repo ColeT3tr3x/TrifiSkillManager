@@ -10,6 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.sucy.skill.api.skills.Skill;
+import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
@@ -29,6 +30,7 @@ public class Displacement extends Skill implements SkillShot {
 	public Displacement(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
 		getDescription().add("&7Teleport you %LEVEL*3% blocks forward");
+		settings.set(SkillAttribute.MANA, MANACOST);
 	}
 
 	@Override

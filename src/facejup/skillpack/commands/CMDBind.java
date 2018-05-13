@@ -15,6 +15,7 @@ import facejup.skillpack.main.CommandManager;
 import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
+import facejup.skillpack.util.Numbers;
 
 public class CMDBind implements CommandExecutor {
 
@@ -59,11 +60,16 @@ public class CMDBind implements CommandExecutor {
 		}
 		if(player.getInventory().getItemInHand() == null || player.getInventory().getItemInMainHand().getType() == Material.AIR)
 		{
-			player.sendMessage(Chat.translate(Lang.tag + "Must be holding an item."));
+			player.sendMessage(Lang.nullItem);
 			return true;
 		}
-
-		cm.getMain().bindSkill(player, skill);
+		int level = -1;
+		if(args.length == 2 && Numbers.isInt(args[1]))
+			level = Integer.parseInt(args[1]);
+		if(user.hasSkill(skill, 1) && level > 0)
+			cm.getMain().bindSkill(player, skill, level);
+		else if(user.hasSkill(skill, 1))
+			cm.getMain().bindSkill(player, skill, user.getSkillLevel(skill));
 		return true;
 	}
 
