@@ -251,4 +251,9 @@ public class ItemCreator{
 		//
 		return red * (1/0.04);
 	}
+
+	public static ItemStack getLute() {
+		ItemStack item = new ItemCreator(Material.BOW).setDisplayname("&9Lute").setLore(Arrays.asList(ChatColor.GRAY + "Use this to cast Lute skills.")).getItem();
+		return item;
+	}
 }

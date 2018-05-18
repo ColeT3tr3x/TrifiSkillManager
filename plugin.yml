@@ -2,7 +2,7 @@ name: TrifiSkillManager
 main: facejup.skillpack.main.Main
 description: fuck bitches get money
 version: 69
-depend: [SkillAPI, Citizens, Vault]
+depend: [SkillAPI, Citizens, Vault, LibsDisguises]
 author: notyoubitch
 commands:
   bind:

@@ -1,4 +1,4 @@
-package facejup.skillpack.skills.skillshots;
+package facejup.skillpack.skills;
 
 public interface IUnlocker {
 	

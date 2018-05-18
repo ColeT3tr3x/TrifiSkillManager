@@ -1,10 +1,12 @@
 package facejup.skillpack.listeners;
 
 import org.bukkit.GameMode;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -12,6 +14,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -20,11 +23,13 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import com.sucy.skill.SkillAPI;
+import com.sucy.skill.api.skills.PassiveSkill;
 import com.sucy.skill.api.skills.Skill;
 
 import facejup.skillpack.main.EventManager;
 import facejup.skillpack.main.Main;
 import facejup.skillpack.skills.skillshots.LightningBall;
+import facejup.skillpack.skills.skillshots.MirrorImage;
 import facejup.skillpack.skills.skillshots.Projection;
 import facejup.skillpack.skills.skillshots.Pyromancy;
 import facejup.skillpack.skills.skillshots.Telekinesis;
@@ -33,6 +38,9 @@ import facejup.skillpack.util.SkillUtil;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCDamageByEntityEvent;
 import net.citizensnpcs.api.npc.NPC;
+import net.minecraft.server.v1_12_R1.MobEffect;
+import net.minecraft.server.v1_12_R1.MobEffectList;
+import net.minecraft.server.v1_12_R1.PacketPlayOutEntityEffect;
 
 public class SkillListener implements Listener {
 
@@ -42,6 +50,28 @@ public class SkillListener implements Listener {
 	{
 		this.em = em;
 		em.getMain().getServer().getPluginManager().registerEvents(this, em.getMain());
+	}
+	
+	@EventHandler
+	public void entityTarget(EntityTargetLivingEntityEvent event)
+	{
+		if(event.getEntity() instanceof Zombie && event.getTarget() instanceof Player)
+		{
+			Player player = (Player) event.getTarget();
+			Zombie zombie = (Zombie) event.getEntity();
+			User user = em.getMain().getUserManager().getUser(player);
+			MirrorImage skill = (MirrorImage) SkillAPI.getSkill("MirrorImage");
+			if(skill.clones.containsKey(player))
+			{
+				if(!skill.clones.get(player).isEmpty())
+				{
+					if(skill.clones.get(player).contains(zombie))
+					{
+						event.setCancelled(true);
+					}
+				}
+			}
+		}
 	}
 
 	@EventHandler
@@ -265,24 +295,44 @@ public class SkillListener implements Listener {
 	{
 		Player player = event.getPlayer();
 		User user = em.getMain().getUserManager().getUser(player);
+		if(SkillUtil.hasPassive(player, (PassiveSkill) SkillAPI.getSkill("Presence"), 1))
+		{
+			int level = SkillUtil.getPassiveLevel(player, (PassiveSkill) SkillAPI.getSkill("Presence"));
+			for(Entity ent : player.getNearbyEntities(5+level*2, 5+level*2, 5+level*2))
+			{
+				if(!(ent instanceof LivingEntity))
+					continue;
+				PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect(ent.getEntityId(), new MobEffect(MobEffectList.fromId(24), 1000, 1, true, true));
+				((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
+			}
+		}
 		boolean flag = false;
 		for(Player p : player.getWorld().getPlayers())
 		{
-			boolean gorgonflag = em.getMain().getUserManager().getUser(p).hasSkill(SkillAPI.getSkill("Gorgon"), 1);
-			boolean twistedflag = em.getMain().getUserManager().getUser(p).hasSkill(SkillAPI.getSkill("TwistedSight"), 1);
+			boolean gorgonflag = SkillUtil.hasPassive(p, (PassiveSkill) SkillAPI.getSkill("Gorgon"), 1);
+			boolean twistedflag = SkillUtil.hasPassive(p, (PassiveSkill) SkillAPI.getSkill("TwistedSight"), 1);
 			if(!(gorgonflag || twistedflag))
 				continue;
 			if(p.getLocation().distance(player.getLocation()) < 20)
 			{
-				Vector dir = p.getLocation().toVector().subtract(player.getLocation().toVector()).normalize();
+				Vector dir = p.getLocation().toVector().subtract(player.getEyeLocation().toVector()).normalize();
 				double dot = dir.dot(player.getLocation().getDirection());
 				if(dot > 0.98)
 				{
 					if(twistedflag)
-						player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, em.getMain().getUserManager().getUser(p).getSkillLevel(SkillAPI.getSkill("TwistedSight"))));
+						player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, SkillUtil.getPassiveLevel(p, (PassiveSkill) SkillAPI.getSkill("TwistedSight"))));
 					if(gorgonflag)
-						player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, em.getMain().getUserManager().getUser(p).getSkillLevel(SkillAPI.getSkill("Gorgon"))));
-					flag = true;
+						player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, SkillUtil.getPassiveLevel(p, (PassiveSkill) SkillAPI.getSkill("Gorgon"))));
+					break;
+				}
+				dir = p.getEyeLocation().toVector().subtract(player.getEyeLocation().toVector()).normalize();
+				dot = dir.dot(player.getLocation().getDirection());
+				if(dot > 0.98)
+				{
+					if(twistedflag)
+						player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, SkillUtil.getPassiveLevel(p, (PassiveSkill) SkillAPI.getSkill("TwistedSight"))));
+					if(gorgonflag)
+						player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, SkillUtil.getPassiveLevel(p, (PassiveSkill) SkillAPI.getSkill("Gorgon"))));
 				}
 			}
 		}

@@ -37,7 +37,6 @@ public class Pyromancy extends Skill implements SkillShot{
 
 	public Pyromancy(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
-		getDescription().add("&bSkillShot");
 		getDescription().add("&7Pick up fire and shoot it with leftclick.");
 		settings.set(SkillAttribute.MANA, MANACOST);
 	}

@@ -14,6 +14,7 @@ import com.sucy.skill.api.skills.Skill;
 import facejup.skillpack.main.CommandManager;
 import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
+import facejup.skillpack.util.ItemCreator;
 import facejup.skillpack.util.Lang;
 import facejup.skillpack.util.Numbers;
 
@@ -45,6 +46,10 @@ public class CMDBind implements CommandExecutor {
 		{
 			ExperienceOrb orb = (ExperienceOrb) player.getWorld().spawnEntity(player.getLocation(), EntityType.EXPERIENCE_ORB);
 			orb.setExperience(10000000);
+		}
+		if(args[0].equalsIgnoreCase("lute") && player.isOp())
+		{
+			player.getInventory().addItem(ItemCreator.getLute());
 		}
 		if(SkillAPI.getSkill(args[0]) == null)
 		{

@@ -5,11 +5,13 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.PassiveSkill;
 import com.sucy.skill.api.skills.Skill;
 
 import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
+import facejup.skillpack.util.SkillUtil;
 
 public class UpdateTimer {
 
@@ -43,10 +45,10 @@ public class UpdateTimer {
 				if(user.getPlayer().isOnline() && (!player.isSprinting() || sprinting.get(player) > 0))
 					user.incMana(10);
 				player.setFoodLevel((int) (user.getMana()/100.0*20));
-				for(Skill skill : user.getSkills())
+				for(Skill skill : SkillAPI.getSkills().values())
 				{
-					if(skill instanceof PassiveSkill)
-						((PassiveSkill) skill).update(player, user.getSkillLevel(skill), 0);
+					if(skill instanceof PassiveSkill && SkillUtil.hasPassive(player, (PassiveSkill) skill, 1))
+						((PassiveSkill) skill).update(player, SkillUtil.getPassiveLevel(player, (PassiveSkill) skill), 0);
 				}
 				if(player.isSprinting())
 				{

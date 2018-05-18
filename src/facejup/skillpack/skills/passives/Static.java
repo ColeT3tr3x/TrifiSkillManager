@@ -45,8 +45,6 @@ public class Static extends Skill implements PassiveSkill {
 
 	@Override
 	public void update(LivingEntity player, int level, int arg2) {
-		if(!using.contains(player))
-			return;
 		if(!cooldowns.containsKey((Player) player))
 			cooldowns.put((Player) player, level);
 		cooldowns.put((Player) player, cooldowns.get(player)+level); 

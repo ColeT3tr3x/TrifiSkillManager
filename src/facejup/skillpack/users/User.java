@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.skills.Skill;
 
-import facejup.skillpack.skills.skillshots.IUnlocker;
+import facejup.skillpack.skills.IUnlocker;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
 

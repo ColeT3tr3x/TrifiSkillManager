@@ -14,6 +14,7 @@ import com.sucy.skill.api.skills.SkillAttribute;
 import com.sucy.skill.api.skills.SkillShot;
 
 import facejup.skillpack.main.Main;
+import facejup.skillpack.skills.IUnlocker;
 import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;

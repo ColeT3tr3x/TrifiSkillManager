@@ -24,6 +24,7 @@ import facejup.skillpack.skills.passives.FireResistance;
 import facejup.skillpack.skills.passives.Gills;
 import facejup.skillpack.skills.passives.Gorgon;
 import facejup.skillpack.skills.passives.PoisonResistance;
+import facejup.skillpack.skills.passives.Presence;
 import facejup.skillpack.skills.passives.ProjectileResistance;
 import facejup.skillpack.skills.passives.Static;
 import facejup.skillpack.skills.passives.Thorns;
@@ -39,12 +40,17 @@ import facejup.skillpack.skills.skillshots.FireballRare;
 import facejup.skillpack.skills.skillshots.Gravitize;
 import facejup.skillpack.skills.skillshots.Ignite;
 import facejup.skillpack.skills.skillshots.LightningBall;
+import facejup.skillpack.skills.skillshots.Lullaby;
 import facejup.skillpack.skills.skillshots.Magnetize;
+import facejup.skillpack.skills.skillshots.MirrorImage;
 import facejup.skillpack.skills.skillshots.Projection;
 import facejup.skillpack.skills.skillshots.Pyromancy;
 import facejup.skillpack.skills.skillshots.Telekinesis;
 import facejup.skillpack.skills.skillshots.Volley;
 import facejup.skillpack.skills.targettedskills.Gift;
+import facejup.skillpack.skills.targettedskills.Leviosa;
+import facejup.skillpack.skills.targettedskills.MindTrap;
+import facejup.skillpack.skills.targettedskills.MindWall;
 import facejup.skillpack.users.User;
 import facejup.skillpack.users.UserManager;
 import facejup.skillpack.util.Bind;
@@ -219,6 +225,7 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 		api.addSkill(new Drill("Drill", "SkillShot", Material.DIAMOND_PICKAXE, 5));
 		api.addSkill(new Volley("Volley", "SkillShot", Material.ARROW, 10));
 		api.addSkill(new Eruption("Eruption", "SkillShot", Material.TNT, 4));
+		api.addSkill(new MirrorImage("MirrorImage", "SkillShot", Material.SKULL, 4));
 		api.addSkill(new Projection("Projection", "SkillShot", Material.SKULL, 2));
 		api.addSkill(new Static("Static", "PassiveSkill", Material.LAPIS_BLOCK, 3));
 		api.addSkill(new Pyromancy("Pyromancy", "SkillShot", Material.FIREBALL, 4));
@@ -229,14 +236,19 @@ public class Main extends JavaPlugin implements SkillPlugin,Listener {
 		api.addSkill(new WitherResistance("WitherResistance", "PassiveSkill", Material.DRAGONS_BREATH, 4));
 		api.addSkill(new ProjectileResistance("ProjectileResistance", "PassiveSkill", Material.ARROW, 4));
 		api.addSkill(new Thorns("Thorns", "PassiveSkill", Material.TRIPWIRE_HOOK, 4));
+		api.addSkill(new Presence("Presence", "PassiveSkill", Material.EYE_OF_ENDER	, 4));
 		api.addSkill(new Weightless("Weightless", "PassiveSkill", Material.FEATHER, 4));
 		api.addSkill(new Gills("Gills", "PassiveSkill", Material.WATER_BUCKET, 4));
 		api.addSkill(new TwistedSight("TwistedSight", "PassiveSkill", Material.EYE_OF_ENDER, 1));
 		api.addSkill(new Gorgon("Gorgon", "PassiveSkill", Material.STONE, 4));
 		api.addSkill(new Magnetize("Magnetize", "SkillShot", Material.GOLD_INGOT, 10));
+		api.addSkill(new Lullaby("Lullaby", "SkillShot", Material.NOTE_BLOCK, 10));
 		api.addSkill(new Gravitize("Gravitize", "SkillShot", Material.BRICK, 5));
 		api.addSkill(new FireLeap("FireLeap", "SkillShot", Material.FEATHER, 5));
 		api.addSkill(new Gift("Gift", "TargetSkill", Material.EMERALD, 1));
+		api.addSkill(new Leviosa("Leviosa", "TargetSkill", Material.FEATHER, 1));
+		api.addSkill(new MindWall("MindWall", "TargetSkill", Material.COBBLE_WALL, 1));
+		api.addSkill(new MindTrap("MindTrap", "TargetSkill", Material.IRON_FENCE, 5));
 	}
 
 	@EventHandler

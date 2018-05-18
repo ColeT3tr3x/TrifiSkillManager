@@ -1,13 +1,16 @@
 package facejup.skillpack.skills.targettedskills;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import com.sucy.skill.api.skills.Skill;
 import com.sucy.skill.api.skills.TargetSkill;
@@ -18,29 +21,16 @@ import facejup.skillpack.users.User;
 import facejup.skillpack.util.Chat;
 import facejup.skillpack.util.Lang;
 
-public class Gift extends Skill implements TargetSkill,IPlayerTarget{
+public class MindTrap extends Skill implements TargetSkill,IPlayerTarget {
 
 	private HashMap<LivingEntity, Long> cooldown = new HashMap<>();
-
-	private final double COOLDOWN = 0.1;
+	private final double COOLDOWN = 5;
 	private final double MANACOST = 20;
-	private final double RANGE = 256;
+	private final double RANGE = 20;
 
-	public Gift(String name, String type, Material indicator, int maxLevel) {
+	public MindTrap(String name, String type, Material indicator, int maxLevel) {
 		super(name, type, indicator, maxLevel);
-		getDescription().add("&7Send a player an item");
-	}
-
-	public boolean isOnCooldown(LivingEntity shooter, int level)
-	{
-		if(cooldown.containsKey(shooter))
-			return (cooldown.get(shooter)+this.getCooldown(level)*1000 > System.currentTimeMillis());
-		return false;
-	}
-	
-	public double getRange(int level)
-	{
-		return RANGE;
+		getDescription().add("Make the target player believe they are trapped.");
 	}
 
 	@Override
@@ -62,17 +52,47 @@ public class Gift extends Skill implements TargetSkill,IPlayerTarget{
 		cooldown.put(caster, System.currentTimeMillis());
 		Player player = (Player) caster;
 		Player player2 = (Player) target;
-		if(player.getInventory().getItemInMainHand() == null || player.getInventory().getItemInMainHand().getType() == Material.AIR)
+		List<Location> locs = new ArrayList<>();
+		for(int x = -1; x <= 1; x++)
 		{
-			player.sendMessage(Chat.translate(Lang.tag + "Must be holding an item."));
-			return false;
+			for(int y = -1; y <= 3; y++)
+			{
+				for(int z = -1; z <= 1; z++)
+				{
+					if(x == -1 || x == 1 || y == -1 || y == 3 || z == -1 || z == 1)
+					{
+						locs.add(player2.getLocation().add(new Vector(x,y,z)));
+						player2.sendBlockChange(player2.getLocation().add(new Vector(x,y,z)), Material.COBBLESTONE, (byte) 0);
+					}
+				}
+			}
 		}
-		ItemStack item = player.getInventory().getItemInMainHand();
-		player.getInventory().setItemInMainHand(null);
-		player2.getInventory().addItem(item);
-		player.sendMessage(Chat.translate(Lang.tag + "You sent " + player2.getName() + " " + item.getAmount() + " " + Chat.formatItemName(item)));
-		player2.sendMessage(Chat.translate(Lang.tag + player.getName() + " sent you " + item.getAmount() + " " + Chat.formatItemName(item)));
+		player.sendMessage(Chat.translate(Lang.tag + "You cast MindTrap on " + player2.getName()));
+		Main main = Main.getPlugin(Main.class);
+		main.getServer().getScheduler().scheduleSyncDelayedTask(main, new Runnable()
+		{
+			public void run()
+			{
+				for(Location loc : locs)
+				{
+					player2.sendBlockChange(loc, loc.getBlock().getType(), loc.getBlock().getData());
+				}
+			}
+		}, 40L+level*20L);
 		return true;
 	}
+
+	public boolean isOnCooldown(LivingEntity shooter, int level)
+	{
+		if(cooldown.containsKey(shooter))
+			return (cooldown.get(shooter)+this.getCooldown(level)*1000 > System.currentTimeMillis());
+		return false;
+	}
+
+	public double getRange(int level)
+	{
+		return RANGE;
+	}
+
 
 }

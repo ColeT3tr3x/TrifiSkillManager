@@ -79,7 +79,8 @@ public class ShopListener implements Listener {
 		ItemStack item = event.getCurrentItem();
 		User user = em.getMain().getUserManager().getUser(player);
 		String name = item.getItemMeta().getDisplayName();
-		if(!name.contains("Skill") || SkillAPI.getSkill(ChatColor.stripColor(name).substring(name.indexOf(" ")-1, name.lastIndexOf(" ")-4)) == null)
+		name = ChatColor.stripColor(name);
+		if(!name.contains("Skill") || SkillAPI.getSkill(name.substring(name.indexOf(" ")+1, name.lastIndexOf(" "))) == null)
 		{
 			if(!item.getItemMeta().hasLore())
 				return;
@@ -123,7 +124,7 @@ public class ShopListener implements Listener {
 				}
 			}
 		}
-		Skill skill = SkillAPI.getSkill(ChatColor.stripColor(name).substring(name.indexOf(" ")-1, name.lastIndexOf(" ")-4));
+		Skill skill = SkillAPI.getSkill(ChatColor.stripColor(name).substring(name.indexOf(" "), name.lastIndexOf(" ")));
 		user.purchaseSkill(skill, item.getAmount());
 	}
 
